@@ -1,0 +1,7 @@
+{
+  "uuid": "redshift-extended@martin-v",
+  "name": "Redshift Extended",
+  "description": "Reactivates GNOME Night Light at noon and gradually dims the screen in the evening.",
+  "shell-version": ["45", "46", "47", "48"],
+  "settings-schema": "org.gnome.shell.extensions.redshift-extended"
+}
