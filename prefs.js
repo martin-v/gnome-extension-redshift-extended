@@ -11,18 +11,18 @@ export default class RedshiftExtendedPreferences extends ExtensionPreferences {
         const settings = this.getSettings();
         const page = new Adw.PreferencesPage();
         const group = new Adw.PreferencesGroup({
-            title: 'Abendliches Nudging',
-            description: 'Die Zielzeit muss zwischen Start und Ende liegen (auch über Mitternacht).',
+            title: 'Evening dimming',
+            description: 'The target time must be between the start and end times, including across midnight.',
         });
         page.add(group);
         window.add(page);
 
         for (const [key, title] of [
-            ['start-time', 'Beginn'],
-            ['target-time', 'Zielzeit'],
-            ['end-time', 'Ende und Wiederherstellung'],
+            ['start-time', 'Start time'],
+            ['target-time', 'Target time'],
+            ['end-time', 'End time (restore original values)'],
         ]) {
-            const row = new Adw.ActionRow({title, subtitle: '24-Stunden-Format: HH:MM'});
+            const row = new Adw.ActionRow({title, subtitle: '24-hour format: HH:MM'});
             const entry = new Gtk.Entry({
                 text: formatTime(settings.get_int(key)),
                 width_chars: 5,
@@ -43,8 +43,8 @@ export default class RedshiftExtendedPreferences extends ExtensionPreferences {
         }
 
         for (const [key, title, min, max, step, unsigned] of [
-            ['target-temperature', 'Nachtlicht-Zieltemperatur (K)', 1000, 6500, 100, true],
-            ['target-brightness', 'Zielhelligkeit (%)', 1, 100, 1, false],
+            ['target-temperature', 'Night Light target temperature (K)', 1000, 6500, 100, true],
+            ['target-brightness', 'Target brightness (%)', 1, 100, 1, false],
         ]) {
             const row = new Adw.ActionRow({title});
             const spin = new Gtk.SpinButton({
