@@ -37,12 +37,23 @@ function dateKey(date) {
     return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
+function hourToMinutes(hour) {
+    return Math.round(((hour % 24) + 24) % 24 * 60);
+}
+
 export default class RedshiftExtended extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._color = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.color'});
         this._enabled = true;
         this._busy = false;
+        this._schedule = null;
+        this._scheduleReadAt = 0;
+        this._scheduleChangedId = this._color.connect('changed', (_, key) => {
+            if (['night-light-schedule-automatic', 'night-light-schedule-from',
+                'night-light-schedule-to'].includes(key))
+                this._schedule = null;
+        });
         this._lastCheck = new Date();
         this._tick();
         this._timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 10, () => {
@@ -54,6 +65,7 @@ export default class RedshiftExtended extends Extension {
     disable() {
         this._enabled = false;
         GLib.source_remove(this._timer);
+        this._color.disconnect(this._scheduleChangedId);
         if (!this._busy)
             this._restore().catch(error => console.error(`Redshift Extended: ${error.message}`));
     }
@@ -92,24 +104,26 @@ export default class RedshiftExtended extends Extension {
     }
 
     async _update(now) {
-        const start = this._settings.get_int('start-time');
-        const target = (this._settings.get_int('target-time') - start + 1440) % 1440;
-        const end = (this._settings.get_int('end-time') - start + 1440) % 1440;
-        const elapsed = (now.getHours() * 60 + now.getMinutes() - start + 1440) % 1440;
-        if (target === 0 || end === 0 || target >= end || elapsed >= end) {
+        const schedule = await this._getSchedule();
+        const start = hourToMinutes(schedule.from);
+        const end = hourToMinutes(schedule.to);
+        const duration = (end - start + 1440) % 1440 || 1440;
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        const elapsed = (currentTime - start + 1440) % 1440;
+        if (elapsed >= duration) {
             await this._restore();
             return;
         }
 
-        const progress = Math.min(elapsed / target, 1);
+        const progress = elapsed / duration;
         let original = this._settings.get_uint('original-temperature');
         if (original === 0) {
-            original = this._color.get_uint('night-light-temperature');
+            original = await getProperty(COLOR, 'Temperature');
             this._settings.set_uint('original-temperature', original);
         }
         const temperature = Math.round(original +
             (Math.min(original, this._settings.get_uint('target-temperature')) - original) * progress);
-        this._color.set_uint('night-light-temperature', temperature);
+        await setProperty(COLOR, 'Temperature', 'u', temperature);
         this._settings.set_uint('applied-temperature', temperature);
 
         try {
@@ -133,14 +147,44 @@ export default class RedshiftExtended extends Extension {
         }
     }
 
+    async _getSchedule() {
+        const now = GLib.get_monotonic_time();
+        if (this._schedule && now - this._scheduleReadAt < 300000000)
+            return this._schedule;
+
+        const automatic = this._color.get_boolean('night-light-schedule-automatic');
+        let from = this._color.get_double('night-light-schedule-from');
+        let to = this._color.get_double('night-light-schedule-to');
+        if (automatic) {
+            try {
+                from = await getProperty(COLOR, 'Sunset');
+                to = await getProperty(COLOR, 'Sunrise');
+                if (!(from > 0 && to > 0)) {
+                    from = this._color.get_double('night-light-schedule-from');
+                    to = this._color.get_double('night-light-schedule-to');
+                }
+            } catch (error) {
+                console.warn(`Redshift Extended: could not read GNOME's sunrise and sunset: ${error.message}`);
+            }
+        }
+
+        this._schedule = {from, to};
+        this._scheduleReadAt = now;
+        return this._schedule;
+    }
+
     async _restore() {
         const original = this._settings.get_uint('original-temperature');
         const applied = this._settings.get_uint('applied-temperature');
         if (original !== 0) {
-            if (this._color.get_uint('night-light-temperature') === applied)
-                this._color.set_uint('night-light-temperature', original);
-            this._settings.set_uint('original-temperature', 0);
-            this._settings.set_uint('applied-temperature', 0);
+            try {
+                if (await getProperty(COLOR, 'Temperature') === applied)
+                    await setProperty(COLOR, 'Temperature', 'u', original);
+                this._settings.set_uint('original-temperature', 0);
+                this._settings.set_uint('applied-temperature', 0);
+            } catch (error) {
+                console.error(`Redshift Extended: could not restore GNOME color temperature: ${error.message}`);
+            }
         }
 
         const brightness = this._settings.get_int('original-brightness');

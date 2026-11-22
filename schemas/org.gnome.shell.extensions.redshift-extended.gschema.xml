@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.redshift-extended" path="/org/gnome/shell/extensions/redshift-extended/">
-    <key name="start-time" type="i">
-      <range min="0" max="1439"/>
-      <default>1260</default>
-      <summary>Start time in minutes after midnight</summary>
-    </key>
-    <key name="target-time" type="i">
-      <range min="0" max="1439"/>
-      <default>1380</default>
-      <summary>Time at which the target values are reached</summary>
-    </key>
-    <key name="end-time" type="i">
-      <range min="0" max="1439"/>
-      <default>420</default>
-      <summary>Time at which the original values are restored</summary>
-    </key>
     <key name="target-temperature" type="u">
       <range min="1000" max="6500"/>
       <default>1800</default>

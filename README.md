@@ -4,24 +4,31 @@ A GNOME Shell extension for the built-in Night Light:
 
 - At 12:00, Night Light is re-enabled and “Disable Until Tomorrow” is cleared.
   GNOME's normal Night Light schedule remains unchanged.
-- Starting at a configurable time, Night Light color temperature and screen
-  brightness are gradually reduced until they reach their target values. They
-  remain at those values until the configured end time, when the original
-  values are restored. This also works across midnight.
+- The extension reads GNOME's Night Light schedule and acts only within that
+  time window. It gradually lowers the color temperature and screen brightness
+  toward their configured targets over the course of the scheduled period.
+  Original values are restored outside that period. This also works across
+  midnight.
 
-By default, dimming starts at 21:00 and reaches 1800 K and 20% brightness at
-23:00; the original values are restored at 07:00. Values that are already lower
-are not increased. The times, target temperature, and brightness can be changed
-in the extension preferences. The target time must be after the start time and
-before the end time; dimming is suspended if the times are not in this order.
+The extension preferences show GNOME's Night Light enabled state, schedule, and
+configured target temperature; the extension does not change GNOME's saved
+temperature setting. The extension's target temperature defaults to 1800 K and
+its target brightness to 20%. Values that are already lower are not increased.
+The schedule and GNOME target temperature can be changed in GNOME Settings.
 
-GNOME's Night Light schedule must have Night Light enabled during the desired
-period for the color temperature adjustment to be visible. Manually disabling
-Night Light remains in effect until it is re-enabled at 12:00. The extension
-must be running at that time; if the system is suspended through noon, Night
-Light is re-enabled when the system wakes. While dimming is active, the
-extension overrides manual changes. At the end time or when the extension is
-disabled, it restores only values that it last set itself.
+GNOME Night Light must be enabled for its color temperature adjustment to be
+visible. Manually disabling Night Light remains in effect until it is
+re-enabled at 12:00. The extension must be running at that time; if the system
+is suspended through noon, Night Light is re-enabled when the system wakes.
+While dimming is active, the extension overrides manual changes. Outside the
+scheduled period or when the extension is disabled, it restores only values
+that it last set itself.
+
+GNOME Settings Daemon defaults are Night Light disabled, automatic sunset to
+sunrise scheduling enabled, manual schedule fallback from 20:00 to 06:00, and
+a target color temperature of 2700 K. Automatic times depend on the detected
+location; the manual times are used when automatic scheduling is turned off or
+sunrise/sunset cannot be determined.
 
 ## Installation
 
