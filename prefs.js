@@ -92,10 +92,34 @@ export default class RedshiftExtendedPreferences extends ExtensionPreferences {
 
         const group = new Adw.PreferencesGroup({
             title: 'Additional evening dimming',
-            description: 'The extension gradually reaches these target values during GNOME Night Light hours.',
+            description: 'The fade and target times must both fall within GNOME Night Light hours.',
         });
         page.add(group);
         window.add(page);
+
+        for (const [key, title] of [
+            ['fade-start-time', 'Start fading at'],
+            ['target-time', 'Reach target values at'],
+        ]) {
+            const row = new Adw.ActionRow({title, subtitle: '24-hour format: HH:MM'});
+            const entry = new Gtk.Entry({
+                text: formatTime(settings.get_int(key)),
+                width_chars: 5,
+                max_length: 5,
+                valign: Gtk.Align.CENTER,
+            });
+            entry.connect('changed', () => {
+                const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(entry.text);
+                if (match) {
+                    settings.set_int(key, Number(match[1]) * 60 + Number(match[2]));
+                    entry.remove_css_class('error');
+                } else {
+                    entry.add_css_class('error');
+                }
+            });
+            row.add_suffix(entry);
+            group.add(row);
+        }
 
         for (const [key, title, min, max, step, unsigned] of [
             ['target-temperature', 'Additional color temperature target (K)', 1000, 6500, 100, true],

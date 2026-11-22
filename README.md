@@ -5,16 +5,18 @@ A GNOME Shell extension for the built-in Night Light:
 - At 12:00, Night Light is re-enabled and “Disable Until Tomorrow” is cleared.
   GNOME's normal Night Light schedule remains unchanged.
 - The extension reads GNOME's Night Light schedule and acts only within that
-  time window. It gradually lowers the color temperature and screen brightness
-  toward their configured targets over the course of the scheduled period.
-  Original values are restored outside that period. This also works across
-  midnight.
+  time window. By default, fading starts at 23:00 and the configured target
+  color temperature and brightness are reached at 01:00. Original values are
+  restored outside GNOME's scheduled period. The fade start and target times
+  are configurable and this also works across midnight.
 
 The extension preferences show GNOME's Night Light enabled state, schedule, and
 configured target temperature; the extension does not change GNOME's saved
 temperature setting. The extension's target temperature defaults to 1800 K and
 its target brightness to 20%. Values that are already lower are not increased.
-The schedule and GNOME target temperature can be changed in GNOME Settings.
+The fade starts at 23:00 by default and reaches the target values at 01:00.
+Both times must fall within GNOME's Night Light schedule. The schedule and GNOME
+target temperature can be changed in GNOME Settings.
 
 GNOME Night Light must be enabled for its color temperature adjustment to be
 visible. Manually disabling Night Light remains in effect until it is

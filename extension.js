@@ -110,12 +110,18 @@ export default class RedshiftExtended extends Extension {
         const duration = (end - start + 1440) % 1440 || 1440;
         const currentTime = now.getHours() * 60 + now.getMinutes();
         const elapsed = (currentTime - start + 1440) % 1440;
-        if (elapsed >= duration) {
+        const fadeStart = this._settings.get_int('fade-start-time');
+        const targetTime = this._settings.get_int('target-time');
+        const fadeOffset = (fadeStart - start + 1440) % 1440;
+        const targetOffset = (targetTime - start + 1440) % 1440;
+        if (elapsed >= duration || fadeOffset >= duration ||
+            targetOffset >= duration || targetOffset <= fadeOffset ||
+            elapsed < fadeOffset) {
             await this._restore();
             return;
         }
 
-        const progress = elapsed / duration;
+        const progress = Math.min((elapsed - fadeOffset) / (targetOffset - fadeOffset), 1);
         let original = this._settings.get_uint('original-temperature');
         if (original === 0) {
             original = await getProperty(COLOR, 'Temperature');

@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.redshift-extended" path="/org/gnome/shell/extensions/redshift-extended/">
+    <key name="fade-start-time" type="i">
+      <range min="0" max="1439"/>
+      <default>1380</default>
+      <summary>Time to start dimming</summary>
+    </key>
+    <key name="target-time" type="i">
+      <range min="0" max="1439"/>
+      <default>60</default>
+      <summary>Time to reach the target values</summary>
+    </key>
     <key name="target-temperature" type="u">
       <range min="1000" max="6500"/>
       <default>1800</default>
